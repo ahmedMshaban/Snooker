@@ -106,3 +106,89 @@
 
 - **Week 1**: Focus on setting up the environment, drawing the table, and initial ball positions.
 - **Week 2**: Implement physics, interactions, collision detection, and finalize the project with a video demo and commentary.
+
+
+            +-----------------------------------------+
+            |             SnookerTable                |
+            +-----------------------------------------+
+            | - tableWidth: float                     |
+            | - tableLength: float                    |
+            | - ballDiameter: float                   |
+            | - pocketDiameter: float                 |
+            | - pocketRadius: float                   |
+            +-----------------------------------------+
+            | + drawTable(): void                     |
+            | + drawEdges(): void                     |
+            | + drawPockets(): void                   |
+            | + drawBaulkLine(): void                 |
+            | + drawDZone(): void                     |
+            | + createBalls(): void                   |
+            +-----------------------------------------+
+
+                | uses
+                v
+            +-----------------------------------------+
+            |                  Ball                   |
+            +-----------------------------------------+
+            | - x: float                              |
+            | - y: float                              |
+            | - diameter: float                       |
+            | - body: Matter.Body                     |
+            +-----------------------------------------+
+            | + display(): void                       |
+            | + applyFriction(): void                 |
+            | + applyRestitution(): void              |
+            +-----------------------------------------+
+
+                | manages
+                v
+            +-----------------------------------------+
+            |                  Cue                    |
+            +-----------------------------------------+
+            | - x: float                              |
+            | - y: float                              |
+            | - length: float                         |
+            | - angle: float                          |
+            | - speed: float                          |
+            +-----------------------------------------+
+            | + drawCue(): void                       |
+            | + moveCue(): void                       |
+            | + hitBall(): void                       |
+            | + adjustSpeed(): void                   |
+            +-----------------------------------------+
+
+                | detects
+                v
+            +-----------------------------------------+
+            |           CollisionManager              |
+            +-----------------------------------------+
+            | - collisionType: String                 |
+            +-----------------------------------------+
+            | + detectCollision(): void               |
+            | + handleCollision(): void               |
+            | + collisionCueRed(): void               |
+            | + collisionCueColour(): void            |
+            | + collisionCueCushion(): void           |
+            +-----------------------------------------+
+
+                | uses
+                v
+            +-----------------------------------------+
+            |                  Game                   |
+            +-----------------------------------------+
+            | - balls: Ball[]                         |
+            | - cue: Cue                              |
+            | - table: SnookerTable                   |
+            | - mode: int                             |
+            | - engine: Matter.Engine                 |
+            | - world: Matter.World                   |
+            +-----------------------------------------+
+            | + startGame(): void                     |
+            | + handleKeystroke(mode: int): void      |
+            | + update(): void                        |
+            | + render(): void                        |
+            | + initializeBalls(): void               |
+            | + resetCueBall(): void                  |
+            | + repositionColouredBall(): void        |
+            | + showErrorPrompt(): void               |
+            +-----------------------------------------+
