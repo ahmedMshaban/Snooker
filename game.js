@@ -51,7 +51,7 @@ class Game {
     }
   }
 
-  createStartingPositions() {
+  placeNonRedBalls() {
     const ballDiameter = this.table.ballDiameter;
     const baulkLineX = this.table.baulkLineX;
     const dRadius = this.table.dRadius;
@@ -79,24 +79,23 @@ class Game {
       new Ball(baulkLineX, dCenterY, ballDiameter, this.world, [165, 42, 42])
     ); // Brown ball
 
-    // Red balls in triangular formation
+    // Position of the remaining colored balls
+    this.balls.push(new Ball(600, 300, ballDiameter, this.world, [0, 0, 255])); // Blue ball
+    this.balls.push(
+      new Ball(880, 300, ballDiameter, this.world, [255, 192, 203])
+    ); // Pink ball
+    this.balls.push(new Ball(1100, 300, ballDiameter, this.world, [0, 0, 0])); // Black ball
+  }
+
+  createStartingPositions() {
+    this.placeNonRedBalls();
+
+    const ballDiameter = this.table.ballDiameter;
     const startX = 900; // Adjusted Starting X position for the triangle
     const startY = 300; // Y position for the tip of the triangle
     const spacing = ballDiameter * 1.1; // Slight spacing between balls
 
-    // Position of the remaining colored balls
-    this.balls.push(new Ball(600, 300, ballDiameter, this.world, [0, 0, 255])); // Blue ball
-    this.balls.push(
-      new Ball(
-        startX - spacing - 5,
-        300,
-        ballDiameter,
-        this.world,
-        [255, 192, 203]
-      )
-    ); // Pink ball
-    this.balls.push(new Ball(1100, 300, ballDiameter, this.world, [0, 0, 0])); // Black ball
-
+    // Red balls in triangular formation
     let redCount = 0;
     for (let row = 0; row < 5; row++) {
       for (let col = 0; col <= row; col++) {
@@ -111,19 +110,44 @@ class Game {
   }
 
   createRandomRedPositions() {
+    this.placeNonRedBalls();
+
+    // Generate random positions for 15 red balls
+    const ballDiameter = this.table.ballDiameter;
     for (let i = 0; i < 15; i++) {
-      let x = random(100, width - 100);
-      let y = random(100, height - 100);
-      this.balls.push(new Ball(x, y, this.table.ballDiameter, this.world));
+      let x, y, overlapping;
+      do {
+        overlapping = false;
+        x = random(
+          this.table.innerLeftX + ballDiameter,
+          this.table.innerRightX - ballDiameter
+        );
+        y = random(
+          this.table.innerTopY + ballDiameter,
+          this.table.innerBottomY - ballDiameter
+        );
+
+        // Check for overlap with existing balls
+        for (let ball of this.balls) {
+          const distance = dist(
+            x,
+            y,
+            ball.body.position.x,
+            ball.body.position.y
+          );
+          if (distance < ballDiameter * 1.1) {
+            overlapping = true;
+            break;
+          }
+        }
+      } while (overlapping);
+
+      this.balls.push(new Ball(x, y, ballDiameter, this.world, [255, 0, 0])); // Red ball
     }
   }
 
   createRandomPositions() {
     this.createRandomRedPositions();
-    // Add colored balls at fixed positions
-    this.balls.push(new Ball(200, 150, this.table.ballDiameter, this.world));
-    this.balls.push(new Ball(250, 150, this.table.ballDiameter, this.world));
-    // Add more colored balls as needed
   }
 
   resetCueBall() {
