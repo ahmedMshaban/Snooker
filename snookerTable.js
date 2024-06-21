@@ -18,6 +18,13 @@ class SnookerTable {
     this.innerTopY = (canvasHeight - this.tableWidth) / 2;
     this.innerBottomY = this.innerTopY + this.tableWidth;
     this.innerMiddleX = this.innerLeftX + this.tableLength / 2;
+
+    // one-fifth of the width of the table from the left
+    this.baulkLineX =
+      (canvasWidth - this.tableLength) / 2 + this.tableLength / 5;
+    // one-sixth of the width of the table, considering the trapezoidsWidth
+    this.dRadius = (this.tableWidth - 2 * this.trapezoidsWidth) / 6;
+    this.dCenterY = canvasHeight / 2;
   }
 
   drawTable() {
@@ -457,14 +464,11 @@ class SnookerTable {
     // Draw the baulk line
     stroke(255);
     noFill();
-    // one-fifth of the width of the table from the left
-    const baulkLineX =
-      (canvasWidth - this.tableLength) / 2 + this.tableLength / 5;
 
     line(
-      baulkLineX,
+      this.baulkLineX,
       this.innerTopY + this.trapezoidsWidth,
-      baulkLineX,
+      this.baulkLineX,
       this.innerBottomY - this.trapezoidsWidth
     );
   }
@@ -473,17 +477,23 @@ class SnookerTable {
     // Draw the "D" area
     stroke(255);
     noFill();
-    // one-sixth of the width of the table, considering the trapezoidsWidth
-    const dRadius = (this.tableWidth - 2 * this.trapezoidsWidth) / 6;
-    const dCenterY = canvasHeight / 2;
-    const baulkLineX =
-      (canvasWidth - this.tableLength) / 2 + this.tableLength / 5;
 
-    arc(baulkLineX, dCenterY, dRadius * 2, dRadius * 2, HALF_PI, PI + HALF_PI);
+    arc(
+      this.baulkLineX,
+      this.dCenterY,
+      this.dRadius * 2,
+      this.dRadius * 2,
+      HALF_PI,
+      PI + HALF_PI
+    );
 
     textSize(16);
     fill(255);
     noStroke();
-    text('the "D" zone', baulkLineX - 30, dCenterY + dRadius + 20);
+    text(
+      'the "D" zone',
+      this.baulkLineX - 30,
+      this.dCenterY + this.dRadius + 20
+    );
   }
 }
