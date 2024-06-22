@@ -22,9 +22,3 @@ function keyPressed() {
     game.handleKeystroke(3);
   }
 }
-
-////////////////////////////////////////////////////////////
-//removes a body from the physics world
-function removeFromWorld(body) {
-  World.remove(engine.world, body);
-}

@@ -63,28 +63,28 @@ class SnookerTable {
       (this.innerTopY + this.innerBottomY) / 2,
       this.borderWidth,
       this.tableWidth + 2 * this.borderWidth,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
     const rightEdge = Matter.Bodies.rectangle(
       this.innerRightX + this.borderWidth / 2,
       (this.innerTopY + this.innerBottomY) / 2,
       this.borderWidth,
       this.tableWidth + 2 * this.borderWidth,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
     const topEdge = Matter.Bodies.rectangle(
       (this.innerLeftX + this.innerRightX) / 2,
       this.innerTopY - this.borderWidth / 2,
       this.tableLength + 2 * this.borderWidth,
       this.borderWidth,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
     const bottomEdge = Matter.Bodies.rectangle(
       (this.innerLeftX + this.innerRightX) / 2,
       this.innerBottomY + this.borderWidth / 2,
       this.tableLength + 2 * this.borderWidth,
       this.borderWidth,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
 
     // Add edges to the world
@@ -411,42 +411,42 @@ class SnookerTable {
       this.innerLeftX + this.trapezoidsWidth / 2,
       (this.innerTopY + this.innerBottomY) / 2,
       leftVerticalVertices,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
 
     const rightVerticalBody = Matter.Bodies.fromVertices(
       this.innerRightX - this.trapezoidsWidth / 2,
       (this.innerTopY + this.innerBottomY) / 2,
       rightVerticalVertices,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
 
     const topLeftToMiddleBody = Matter.Bodies.fromVertices(
       (this.innerLeftX + this.innerMiddleX) / 2,
       this.innerTopY + this.trapezoidsWidth / 2,
       topLeftToMiddleVertices,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
 
     const topMiddleToRightBody = Matter.Bodies.fromVertices(
       (this.innerMiddleX + this.innerRightX) / 2,
       this.innerTopY + this.trapezoidsWidth / 2,
       topMiddleToRightVertices,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
 
     const bottomLeftToMiddleBody = Matter.Bodies.fromVertices(
       (this.innerLeftX + this.innerMiddleX) / 2,
       this.innerBottomY - this.trapezoidsWidth / 2,
       bottomLeftToMiddleVertices,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
 
     const bottomMiddleToRightBody = Matter.Bodies.fromVertices(
       (this.innerMiddleX + this.innerRightX) / 2,
       this.innerBottomY - this.trapezoidsWidth / 2,
       bottomMiddleToRightVertices,
-      { isStatic: true }
+      { isStatic: true, restitution: 0.8 }
     );
 
     // Add trapezoids to the world
