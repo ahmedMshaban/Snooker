@@ -1,3 +1,12 @@
+let Engine = Matter.Engine;
+let Render = Matter.Render;
+let Runner = Matter.Runner;
+let World = Matter.World;
+let Bodies = Matter.Bodies;
+let Body = Matter.Body;
+let Constraint = Matter.Constraint;
+let Mouse = Matter.Mouse;
+let MouseConstraint = Matter.MouseConstraint;
 let game;
 const canvasWidth = 1200;
 const canvasHeight = 600;
@@ -22,3 +31,36 @@ function keyPressed() {
     game.handleKeystroke(3);
   }
 }
+
+////////////////////////////////////////////////////////////
+function drawVertices(vertices) {
+  beginShape();
+  for (var i = 0; i < vertices.length; i++) {
+    vertex(vertices[i].x, vertices[i].y);
+  }
+  endShape(CLOSE);
+}
+////////////////////////////////////////////////////////////
+function drawConstraint(constraint) {
+  push();
+  var offsetA = constraint.pointA;
+  var posA = { x: 0, y: 0 };
+  if (constraint.bodyA) {
+    posA = constraint.bodyA.position;
+  }
+  var offsetB = constraint.pointB;
+  var posB = { x: 0, y: 0 };
+  if (constraint.bodyB) {
+    posB = constraint.bodyB.position;
+  }
+  strokeWeight(5);
+  stroke(255);
+  line(
+    posA.x + offsetA.x,
+    posA.y + offsetA.y,
+    posB.x + offsetB.x,
+    posB.y + offsetB.y
+  );
+  pop();
+}
+////////////////////////////////////////////////////////////

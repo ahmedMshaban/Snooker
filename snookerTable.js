@@ -56,30 +56,32 @@ class SnookerTable {
       this.tableWidth + 2 * this.borderWidth,
       this.cornerRadius
     );
+  }
 
+  setupEdges() {
     // Create static bodies for the edges
-    const leftEdge = Matter.Bodies.rectangle(
+    const leftEdge = Bodies.rectangle(
       this.innerLeftX - this.borderWidth / 2,
       (this.innerTopY + this.innerBottomY) / 2,
       this.borderWidth,
       this.tableWidth + 2 * this.borderWidth,
       { isStatic: true, restitution: 0.8 }
     );
-    const rightEdge = Matter.Bodies.rectangle(
+    const rightEdge = Bodies.rectangle(
       this.innerRightX + this.borderWidth / 2,
       (this.innerTopY + this.innerBottomY) / 2,
       this.borderWidth,
       this.tableWidth + 2 * this.borderWidth,
       { isStatic: true, restitution: 0.8 }
     );
-    const topEdge = Matter.Bodies.rectangle(
+    const topEdge = Bodies.rectangle(
       (this.innerLeftX + this.innerRightX) / 2,
       this.innerTopY - this.borderWidth / 2,
       this.tableLength + 2 * this.borderWidth,
       this.borderWidth,
       { isStatic: true, restitution: 0.8 }
     );
-    const bottomEdge = Matter.Bodies.rectangle(
+    const bottomEdge = Bodies.rectangle(
       (this.innerLeftX + this.innerRightX) / 2,
       this.innerBottomY + this.borderWidth / 2,
       this.tableLength + 2 * this.borderWidth,
@@ -88,7 +90,7 @@ class SnookerTable {
     );
 
     // Add edges to the world
-    Matter.World.add(this.world, [leftEdge, rightEdge, topEdge, bottomEdge]);
+    World.add(this.world, [leftEdge, rightEdge, topEdge, bottomEdge]);
   }
 
   drawSurface() {
@@ -181,62 +183,39 @@ class SnookerTable {
     ellipse(this.innerRightX, this.innerBottomY, this.pocketDiameter); // Bottom-right pocket
     ellipse(this.innerMiddleX, this.innerTopY, this.pocketDiameter); // Middle-top pocket
     ellipse(this.innerMiddleX, this.innerBottomY, this.pocketDiameter); // Middle-bottom pocket
+  }
 
+  setupPockets() {
     // Create Matter.js bodies for the pockets
     const pockets = [
-      Matter.Bodies.circle(this.innerLeftX, this.innerTopY, this.pocketRadius, {
+      Bodies.circle(this.innerLeftX, this.innerTopY, this.pocketRadius, {
         isStatic: true,
         isSensor: true,
       }), // Top-left pocket
-      Matter.Bodies.circle(
-        this.innerRightX,
-        this.innerTopY,
-        this.pocketRadius,
-        {
-          isStatic: true,
-          isSensor: true,
-        }
-      ), // Top-right pocket
-      Matter.Bodies.circle(
-        this.innerLeftX,
-        this.innerBottomY,
-        this.pocketRadius,
-        {
-          isStatic: true,
-          isSensor: true,
-        }
-      ), // Bottom-left pocket
-      Matter.Bodies.circle(
-        this.innerRightX,
-        this.innerBottomY,
-        this.pocketRadius,
-        {
-          isStatic: true,
-          isSensor: true,
-        }
-      ), // Bottom-right pocket
-      Matter.Bodies.circle(
-        this.innerMiddleX,
-        this.innerTopY,
-        this.pocketRadius,
-        {
-          isStatic: true,
-          isSensor: true,
-        }
-      ), // Middle-top pocket
-      Matter.Bodies.circle(
-        this.innerMiddleX,
-        this.innerBottomY,
-        this.pocketRadius,
-        {
-          isStatic: true,
-          isSensor: true,
-        }
-      ), // Middle-bottom pocket
+      Bodies.circle(this.innerRightX, this.innerTopY, this.pocketRadius, {
+        isStatic: true,
+        isSensor: true,
+      }), // Top-right pocket
+      Bodies.circle(this.innerLeftX, this.innerBottomY, this.pocketRadius, {
+        isStatic: true,
+        isSensor: true,
+      }), // Bottom-left pocket
+      Bodies.circle(this.innerRightX, this.innerBottomY, this.pocketRadius, {
+        isStatic: true,
+        isSensor: true,
+      }), // Bottom-right pocket
+      Bodies.circle(this.innerMiddleX, this.innerTopY, this.pocketRadius, {
+        isStatic: true,
+        isSensor: true,
+      }), // Middle-top pocket
+      Bodies.circle(this.innerMiddleX, this.innerBottomY, this.pocketRadius, {
+        isStatic: true,
+        isSensor: true,
+      }), // Middle-bottom pocket
     ];
 
     // Add pockets to the world
-    Matter.World.add(this.world, pockets);
+    World.add(this.world, pockets);
   }
 
   drawTrapezoids() {
@@ -327,7 +306,9 @@ class SnookerTable {
       this.innerTopY + this.pocketDiameter / 2 + this.vertexOffset
     );
     endShape(CLOSE);
+  }
 
+  setupTrapezoids() {
     const leftVerticalVertices = [
       { x: this.innerLeftX, y: this.innerTopY + this.pocketDiameter / 2 },
       { x: this.innerLeftX, y: this.innerBottomY - this.pocketDiameter / 2 },
@@ -407,42 +388,42 @@ class SnookerTable {
     ];
 
     // Create the Matter.js bodies from the vertices
-    const leftVerticalBody = Matter.Bodies.fromVertices(
+    const leftVerticalBody = Bodies.fromVertices(
       this.innerLeftX + this.trapezoidsWidth / 2,
       (this.innerTopY + this.innerBottomY) / 2,
       leftVerticalVertices,
       { isStatic: true, restitution: 0.8 }
     );
 
-    const rightVerticalBody = Matter.Bodies.fromVertices(
+    const rightVerticalBody = Bodies.fromVertices(
       this.innerRightX - this.trapezoidsWidth / 2,
       (this.innerTopY + this.innerBottomY) / 2,
       rightVerticalVertices,
       { isStatic: true, restitution: 0.8 }
     );
 
-    const topLeftToMiddleBody = Matter.Bodies.fromVertices(
+    const topLeftToMiddleBody = Bodies.fromVertices(
       (this.innerLeftX + this.innerMiddleX) / 2,
       this.innerTopY + this.trapezoidsWidth / 2,
       topLeftToMiddleVertices,
       { isStatic: true, restitution: 0.8 }
     );
 
-    const topMiddleToRightBody = Matter.Bodies.fromVertices(
+    const topMiddleToRightBody = Bodies.fromVertices(
       (this.innerMiddleX + this.innerRightX) / 2,
       this.innerTopY + this.trapezoidsWidth / 2,
       topMiddleToRightVertices,
       { isStatic: true, restitution: 0.8 }
     );
 
-    const bottomLeftToMiddleBody = Matter.Bodies.fromVertices(
+    const bottomLeftToMiddleBody = Bodies.fromVertices(
       (this.innerLeftX + this.innerMiddleX) / 2,
       this.innerBottomY - this.trapezoidsWidth / 2,
       bottomLeftToMiddleVertices,
       { isStatic: true, restitution: 0.8 }
     );
 
-    const bottomMiddleToRightBody = Matter.Bodies.fromVertices(
+    const bottomMiddleToRightBody = Bodies.fromVertices(
       (this.innerMiddleX + this.innerRightX) / 2,
       this.innerBottomY - this.trapezoidsWidth / 2,
       bottomMiddleToRightVertices,
@@ -450,7 +431,7 @@ class SnookerTable {
     );
 
     // Add trapezoids to the world
-    Matter.World.add(this.world, [
+    World.add(this.world, [
       leftVerticalBody,
       rightVerticalBody,
       topLeftToMiddleBody,
@@ -458,6 +439,12 @@ class SnookerTable {
       bottomLeftToMiddleBody,
       bottomMiddleToRightBody,
     ]);
+  }
+
+  setupTable() {
+    this.setupEdges();
+    this.setupPockets();
+    this.setupTrapezoids();
   }
 
   drawBaulkLine() {

@@ -1,8 +1,8 @@
 class Game {
   constructor() {
-    this.engine = Matter.Engine.create();
+    this.engine = Engine.create();
     this.world = this.engine.world;
-    this.world.gravity.y = 0; // No gravity in the horizontal direction
+    this.engine.gravity.y = 0; // No gravity in the horizontal direction
     this.balls = [];
     this.cue = new Cue(200, 300, 150, this.world);
     this.table = new SnookerTable(this.world);
@@ -12,7 +12,8 @@ class Game {
   }
 
   startGame() {
-    Matter.Runner.run(this.engine);
+    Runner.run(this.engine);
+    this.table.setupTable();
     this.render();
   }
 
@@ -22,7 +23,7 @@ class Game {
   }
 
   update() {
-    Matter.Engine.update(this.engine);
+    Engine.update(this.engine);
     this.render();
   }
 
@@ -32,13 +33,13 @@ class Game {
 
     // Draw the table, balls, and cue
     this.table.drawTable();
-    this.balls.forEach((ball) => ball.display());
+    this.balls.forEach((ball) => ball.draw());
     this.cue.drawCue();
   }
 
   initializeBalls() {
     // Clear existing balls from the Matter.js world and array
-    this.balls.forEach((ball) => Matter.World.remove(this.world, ball.body));
+    this.balls.forEach((ball) => this.removeFromWorld(ball.body));
     this.balls = [];
 
     // Create balls based on the mode
@@ -181,5 +182,11 @@ class Game {
     fill(255, 0, 0);
     textSize(32);
     text(message, width / 2, height / 2);
+  }
+
+  ////////////////////////////////////////////////////////////
+  //removes a body from the physics world
+  removeFromWorld(body) {
+    World.remove(this.engine.world, body);
   }
 }

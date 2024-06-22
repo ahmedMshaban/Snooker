@@ -30,6 +30,8 @@ class Cue {
     pop();
   }
 
+  setupCue() {}
+
   handleKeystroke() {}
 
   handleMouse(mouseX, mouseY) {}
