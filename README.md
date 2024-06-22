@@ -102,6 +102,10 @@
   - Ensure the console window is open during the demo.
   - **PR Name**: `prepare-video-demo`
 
+### Good to have
+
+- give balls border color
+
 ## Summary
 
 - **Week 1**: Focus on setting up the environment, drawing the table, and initial ball positions.

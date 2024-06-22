@@ -4,7 +4,7 @@ class Game {
     this.world = this.engine.world;
     this.world.gravity.y = 0; // No gravity in the horizontal direction
     this.balls = [];
-    // this.cue = new Cue();
+    this.cue = new Cue(200, 300, 150, this.world);
     this.table = new SnookerTable(this.world);
     this.mode = 0;
 
@@ -33,7 +33,7 @@ class Game {
     // Draw the table, balls, and cue
     this.table.drawTable();
     this.balls.forEach((ball) => ball.display());
-    // this.cue.drawCue();
+    this.cue.drawCue();
   }
 
   initializeBalls() {
@@ -173,12 +173,7 @@ class Game {
 
   resetCueBall() {
     // Reset cue ball position, for example inside the "D" zone
-    // this.cue.setPosition(this.table.getDZonePosition());
-  }
-
-  repositionColouredBall(colouredBall) {
-    // Reposition the colored ball to its designated spot
-    colouredBall.setPosition(this.table.getColouredBallPosition(colouredBall));
+    this.cue.setPosition(this.table.getDZonePosition());
   }
 
   showErrorPrompt(message) {
