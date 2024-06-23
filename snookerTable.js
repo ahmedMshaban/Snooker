@@ -483,4 +483,13 @@ class SnookerTable {
       this.dCenterY + this.dRadius + 20
     );
   }
+
+  isInsideDZone(x, y) {
+    const dRadius = this.dRadius;
+    const baulkLineX = this.baulkLineX;
+    const dCenterY = this.dCenterY;
+
+    const distance = dist(x, y, baulkLineX, dCenterY);
+    return distance <= dRadius && x <= baulkLineX;
+  }
 }

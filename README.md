@@ -102,9 +102,6 @@
   - Ensure the console window is open during the demo.
   - **PR Name**: `prepare-video-demo`
 
-### Good to have
-
-- give balls border color
 
 ## Summary
 

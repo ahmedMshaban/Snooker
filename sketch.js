@@ -29,6 +29,21 @@ function keyPressed() {
     game.handleKeystroke(2);
   } else if (key === "3") {
     game.handleKeystroke(3);
+  } else if (key === "ArrowRight") {
+    game.cueStick.handleKeystroke("right");
+  } else if (key === "ArrowLeft") {
+    game.cueStick.handleKeystroke("left");
+  }
+}
+
+function mousePressed() {
+  game.handleMouse(mouseX, mouseY);
+}
+
+function mouseMoved() {
+  // Handle mouse interaction for the cue stick
+  if (game && game.cueBallPlaced && game.cueStick) {
+    game.cueStick.handleMouse(mouseX, mouseY);
   }
 }
 

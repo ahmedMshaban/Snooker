@@ -4,11 +4,15 @@ class Game {
     this.world = this.engine.world;
     this.engine.gravity.y = 0; // No gravity in the horizontal direction
     this.balls = [];
-    this.cue = new Cue(200, 300, 150, this.world);
+    this.cueStick = null; // Initialize cue stick
     this.table = new SnookerTable(this.world);
     this.mode = 0;
-
-    this.initializeBalls();
+    this.cueBall = null; // Initialize cue ball
+    this.cueBallPlaced = false; // Track cue ball placement
+    this.error = {
+      isError: false,
+      message: "",
+    };
   }
 
   startGame() {
@@ -18,8 +22,42 @@ class Game {
   }
 
   handleKeystroke(mode) {
+    // if game in progress, ignore keystrokes
+    if (this.mode !== 0) return;
+
     this.mode = mode;
     this.initializeBalls();
+  }
+
+  handleMouse(mouseX, mouseY) {
+    // ignore mouse clicks if the game is not in progress
+    if (this.mode === 0) return;
+
+    if (!game.cueBallPlaced) {
+      if (this.table.isInsideDZone(mouseX, mouseY)) {
+        // Place the cue ball in the 'D' zone
+        game.createCueBall(mouseX, mouseY);
+        this.cueBallPlaced = true;
+
+        // Create the cue stick
+        game.createCueStick(
+          this.cueBall.body.position.x,
+          this.cueBall.body.position.y,
+          150
+        );
+
+        // Remove the error message
+        this.error = {
+          isError: false,
+          message: "",
+        };
+      } else {
+        this.error = {
+          isError: true,
+          message: "Cue ball must be placed in the 'D' zone",
+        };
+      }
+    }
   }
 
   update() {
@@ -34,7 +72,26 @@ class Game {
     // Draw the table, balls, and cue
     this.table.drawTable();
     this.balls.forEach((ball) => ball.draw());
-    this.cue.drawCue();
+
+    if (this.cueBall) {
+      this.cueBall.draw();
+      this.cueStick.draw();
+    }
+
+    if (this.mode === 0) {
+      this.showModePrompt();
+    }
+
+    if (this.mode !== 0 && !this.cueBallPlaced) {
+      this.error = {
+        isError: true,
+        message: "Place the cue ball in the 'D' zone",
+      };
+    }
+
+    if (this.error.isError) {
+      this.showErrorPrompt(this.error.message);
+    }
   }
 
   initializeBalls() {
@@ -172,16 +229,55 @@ class Game {
     }
   }
 
-  resetCueBall() {
-    // Reset cue ball position, for example inside the "D" zone
-    this.cue.setPosition(this.table.getDZonePosition());
+  createCueBall(x, y) {
+    const cueBall = new Ball(x, y, this.table.ballDiameter, this.world, [255]);
+    this.balls.push(cueBall);
+    this.cueBall = cueBall;
   }
 
-  showErrorPrompt(message) {
+  createCueStick() {
+    const cueBallX = this.cueBall.body.position.x;
+    const cueBallY = this.cueBall.body.position.y;
+    const cueBallRadius = this.cueBall.diameter;
+    const cueLength = 150;
+
+    // Set initial position to the right of the cue ball
+    const stickX = cueBallX - cueBallRadius - cueLength / 2;
+    const stickY = cueBallY;
+
+    this.cueStick = new CueStick(
+      stickX,
+      stickY,
+      cueBallX,
+      cueBallY,
+      cueBallRadius,
+      cueLength,
+      this.world
+    );
+
+    // Set initial rotation angle to point towards the cue ball
+    const angle = 0; // Initial angle pointing horizontally right
+    this.cueStick.body.angle = angle;
+    this.cueStick.angle = angle;
+  }
+
+  showErrorPrompt() {
     // Display an error message on the screen
-    fill(255, 0, 0);
-    textSize(32);
-    text(message, width / 2, height / 2);
+    fill(255);
+    textSize(20);
+    text(this.error.message, width / 2 - 150, height / 2 - 200);
+  }
+
+  showModePrompt() {
+    fill(255);
+    textSize(20);
+    text("Press 1 for standard mode", width / 2 - 150, height / 2 - 50);
+    text("Press 2 for random reds position mode", width / 2 - 150, height / 2);
+    text(
+      "Press 3 for random all balls position mode",
+      width / 2 - 150,
+      height / 2 + 50
+    );
   }
 
   ////////////////////////////////////////////////////////////
