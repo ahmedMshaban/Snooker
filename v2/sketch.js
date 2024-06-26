@@ -1,8 +1,10 @@
 // Global variables and P5js and matter.js setup
-let world,
-  pockets = [],
-  balls = [],
-  engine;
+let Engine = Matter.Engine;
+let Runner = Matter.Runner;
+
+let pockets = [],
+  balls = [];
+
 let currentMode = 1,
   score = 0,
   cueBall,
@@ -60,12 +62,13 @@ function setup() {
   let canvasWidth = 800;
   let canvasHeight = 400;
 
-  game = new Game();
-
-  frameWidth = 10;
-
   let canvas = createCanvas(canvasWidth, canvasHeight);
   canvas.parent("snooker-table");
+
+  game = new Game();
+  game.startGame();
+
+  frameWidth = 10;
 
   let ballDiameter = tableWidth / 60;
   let pocketDiameter = ballDiameter * 1.5;
@@ -76,19 +79,13 @@ function setup() {
     numberOfBalls
   );
 
-  game.table.draw();
-
   drawPockets(pocketDiameter);
 
-  // Create Matter.js engine and world
-  engine = Matter.Engine.create();
-  world = engine.world; // Initialize 'world' using the global variable
-
-  Matter.Events.on(engine, "collisionStart", handleCollision);
+  Matter.Events.on(game.engine, "collisionStart", handleCollision);
 
   // Disable gravity for top-down view
-  engine.world.gravity.y = 0;
-  engine.world.gravity.x = 0;
+  game.engine.world.gravity.y = 0;
+  game.engine.world.gravity.x = 0;
 
   createWalls();
 
@@ -112,7 +109,7 @@ function setup() {
       ballDiameter / 2,
       redBallProperties
     );
-    Matter.World.add(world, snookerBall);
+    Matter.World.add(game.world, snookerBall);
     balls.push(snookerBall);
   }
 
@@ -183,7 +180,7 @@ function setup() {
 
   coloredBalls.forEach((ball) => {
     let newBall = createBall(ball.x, ball.y, ballDiameter / 2, ball.props);
-    Matter.World.add(world, newBall);
+    Matter.World.add(game.world, newBall);
     balls.push(newBall);
   });
 
@@ -196,20 +193,17 @@ function setup() {
   });
 
   // Add the cue to the world
-  Matter.World.add(world, cue);
+  Matter.World.add(game.world, cue);
 
-  createPocketsAsSensors(world); // Pass the global 'world' variable
+  createPocketsAsSensors(game.world); // Pass the global 'world' variable
 
-  setupCollisionHandling(engine);
-
-  let runner = Matter.Runner.create();
-  Matter.Runner.run(runner, engine);
+  setupCollisionHandling(game.engine);
 }
 
 function placeCueBall() {
   let cueBallRadius = tableWidth / 100;
   let newCueBall = createCueBall(mouseX, mouseY, cueBallRadius);
-  Matter.World.add(world, newCueBall);
+  Matter.World.add(game.world, newCueBall);
   cueBall = newCueBall; // Set the new cue ball
   balls.push(newCueBall);
 }
@@ -279,7 +273,7 @@ function createWalls() {
   );
 
   // Add walls to the world
-  Matter.World.add(world, [topWall, bottomWall, leftWall, rightWall]);
+  Matter.World.add(game.world, [topWall, bottomWall, leftWall, rightWall]);
 }
 
 function createCueBall(x, y, radius) {
@@ -348,33 +342,33 @@ function createPocketsAsSensors(world) {
       label: "pocket",
     });
 
-    Matter.World.add(world, pocket);
+    Matter.World.add(game.world, pocket);
     pockets.push(pocket);
   }
 }
 
-function drawTable(tableWidth, tableHeight) {
-  // Set the wooden frame properties
-  let frameWidth = 25;
-  let cornerRadius = frameWidth;
+// function drawTable(tableWidth, tableHeight) {
+//   // Set the wooden frame properties
+//   let frameWidth = 25;
+//   let cornerRadius = frameWidth;
 
-  // Draw the wooden frame with rounded corners
-  noStroke();
-  fill(99, 70, 53);
-  rect(0, 0, tableWidth, tableHeight, cornerRadius);
-  fill(58, 99, 61);
-  rect(
-    frameWidth,
-    frameWidth,
-    tableWidth - 2 * frameWidth,
-    tableHeight - 2 * frameWidth
-  ); // Inner rectangle for the green baize
+//   // Draw the wooden frame with rounded corners
+//   noStroke();
+//   fill(99, 70, 53);
+//   rect(0, 0, tableWidth, tableHeight, cornerRadius);
+//   fill(58, 99, 61);
+//   rect(
+//     frameWidth,
+//     frameWidth,
+//     tableWidth - 2 * frameWidth,
+//     tableHeight - 2 * frameWidth
+//   ); // Inner rectangle for the green baize
 
-  // Set the properties for the "D"
-  dRadius = tableWidth / 10; // The diameter of the "D" semicircle
-  dCenterX = tableWidth * 0.25; // The "D" center x-position
-  dCenterY = tableHeight / 2; // The "D" center y-position
-}
+//   // Set the properties for the "D"
+//   dRadius = tableWidth / 10; // The diameter of the "D" semicircle
+//   dCenterX = tableWidth * 0.25; // The "D" center x-position
+//   dCenterY = tableHeight / 2; // The "D" center y-position
+// }
 
 // Snooker ball colors and values
 let snookerBalls = [
@@ -498,7 +492,7 @@ function draw() {
   background(255);
 
   // Draw table
-  drawTable(tableWidth, tableHeight);
+  game.table.draw();
 
   // Draw the baulk line
   strokeWeight(2);
