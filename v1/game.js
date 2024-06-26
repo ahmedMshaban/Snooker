@@ -2,7 +2,7 @@ class Game {
   constructor() {
     this.engine = Engine.create();
     this.world = this.engine.world;
-    this.engine.gravity.y = 0; // No gravity in the horizontal direction
+    // this.engine.gravity.y = 0; // No gravity in the horizontal direction
     this.balls = [];
     this.cueStick = null; // Initialize cue stick
     this.table = new SnookerTable(this.world);
@@ -57,6 +57,10 @@ class Game {
           message: "Cue ball must be placed in the 'D' zone",
         };
       }
+    }
+
+    if (this.cueStick && this.cueBallPlaced) {
+      this.initiateHit();
     }
   }
 
@@ -233,6 +237,10 @@ class Game {
     const cueBall = new Ball(x, y, this.table.ballDiameter, this.world, [255]);
     this.balls.push(cueBall);
     this.cueBall = cueBall;
+  }
+
+  initiateHit() {
+    this.cueStick.moveToCueBall();
   }
 
   createCueStick() {

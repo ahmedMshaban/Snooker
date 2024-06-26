@@ -29,9 +29,9 @@ function keyPressed() {
     game.handleKeystroke(2);
   } else if (key === "3") {
     game.handleKeystroke(3);
-  } else if (key === "ArrowRight") {
+  } else if (game.cueStick && key === "ArrowRight") {
     game.cueStick.handleKeystroke("right");
-  } else if (key === "ArrowLeft") {
+  } else if (game.cueStick && key === "ArrowLeft") {
     game.cueStick.handleKeystroke("left");
   }
 }

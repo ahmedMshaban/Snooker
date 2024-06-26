@@ -5,13 +5,14 @@ class CueStick {
     this.length = length;
     this.world = world;
     this.angle = 0;
+    this.power = 100;
     this.cueBallX = cueBallX;
     this.cueBallY = cueBallY;
     this.cueBallRadius = cueBallRadius;
     // Create a rectangular body for the cue stick
     this.body = Bodies.rectangle(x, y, length, 10, {
       isStatic: true,
-      isSensor: true,
+      isSensor: false,
     });
 
     // Add the cue stick body to the Matter.js world
@@ -56,14 +57,14 @@ class CueStick {
     const angle = atan2(mouseY - this.cueBallY, mouseX - this.cueBallX);
 
     // Update the angle of the cue stick
-    Body.setAngle(game.cueStick.body, angle);
+    Body.setAngle(this.body, angle);
 
     const stickX =
       this.cueBallX - (this.cueBallRadius + this.length / 2) * cos(angle);
     const stickY =
       this.cueBallY - (this.cueBallRadius + this.length / 2) * sin(angle);
 
-    Body.setPosition(game.cueStick.body, { x: stickX, y: stickY });
+    Body.setPosition(this.body, { x: stickX, y: stickY });
 
     // Update this.angle for p5.js rendering
     this.angle = angle;
@@ -77,24 +78,63 @@ class CueStick {
 
     if (key === "left") {
       // Rotate clockwise
-      game.cueStick.angle += rotationStep;
+      this.angle += rotationStep;
     } else if (key === "right") {
       // Rotate counterclockwise
-      game.cueStick.angle -= rotationStep;
+      this.angle -= rotationStep;
     }
 
     // Update the angle of the cue stick body
-    Body.setAngle(game.cueStick.body, game.cueStick.angle);
+    Body.setAngle(this.body, this.angle);
 
     const stickX =
-      this.cueBallX -
-      (this.cueBallRadius + this.length / 2) * cos(game.cueStick.angle);
+      this.cueBallX - (this.cueBallRadius + this.length / 2) * cos(this.angle);
     const stickY =
-      this.cueBallY -
-      (this.cueBallRadius + this.length / 2) * sin(game.cueStick.angle);
+      this.cueBallY - (this.cueBallRadius + this.length / 2) * sin(this.angle);
 
-    Body.setPosition(game.cueStick.body, { x: stickX, y: stickY });
+    Body.setPosition(this.body, { x: stickX, y: stickY });
     this.x = stickX; // Update this.x for p5.js rendering
     this.y = stickY; // Update this.y for p5.js rendering
+  }
+
+  applyHit() {
+    // Temporarily make the cue stick a solid object
+    this.body.isSensor = false;
+
+    // Calculate the direction vector from the cue stick to the cue ball
+    const direction = createVector(
+      this.cueBallX - this.x,
+      this.cueBallY - this.y
+    );
+    direction.normalize(); // Normalize the vector to get the direction only
+
+    // Calculate the power and apply the force to the cue ball
+    const force = direction.mult(this.power);
+    Body.applyForce(this.body, { x: this.cueBallX, y: this.cueBallY }, force);
+
+    // Re-enable the sensor property after applying force
+    // setTimeout(() => {
+    //   this.body.isSensor = true;
+    // }, 100); // Adjust the timeout as necessary
+  }
+
+  moveToCueBall() {
+    // Move the cue stick towards the cue ball
+    const stepSize = 20; // Adjust the step size as necessary
+    const direction = createVector(
+      this.cueBallX - this.x,
+      this.cueBallY - this.y
+    );
+    direction.normalize();
+    this.x += direction.x * stepSize;
+    this.y += direction.y * stepSize;
+
+    Body.setPosition(this.body, { x: this.x, y: this.y });
+
+    // Check if the cue stick has reached the cue ball
+    const distance = dist(this.x, this.y, this.cueBallX, this.cueBallY);
+    if (distance <= this.cueBallRadius) {
+      this.applyHit();
+    }
   }
 }
