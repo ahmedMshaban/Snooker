@@ -14,9 +14,6 @@ class Table {
     this.dRadius = this.width / 10; // The diameter of the "D" semicircle
     this.dCenterX = this.width * 0.25; // The "D" center x-position
     this.dCenterY = this.height / 2; // The "D" center y-position
-
-    // TOREMOVE
-    this.walls = []; // Store wall bodies
   }
 
   draw() {
@@ -37,13 +34,6 @@ class Table {
       this.width - 2 * this.frameWidth,
       this.height - 2 * this.frameWidth
     ); // Inner rectangle for the green baize
-
-    // Draw the walls for debugging
-    // TOREMOVE
-    // fill(0);
-    // for (let wall of this.walls) {
-    //   this.drawVertices(wall.vertices);
-    // }
   }
 
   createWalls() {
@@ -87,9 +77,6 @@ class Table {
 
     // Add walls to the world
     World.add(this.world, [topWall, bottomWall, leftWall, rightWall]);
-
-    // TOREMOVE
-    // this.walls = [topWall, bottomWall, leftWall, rightWall]; // Store walls for drawing
   }
 
   drawPockets() {
@@ -166,13 +153,4 @@ class Table {
       3 * HALF_PI
     );
   }
-
-  // TOREMOVE
-  //   drawVertices(vertices) {
-  //     beginShape();
-  //     for (var i = 0; i < vertices.length; i++) {
-  //       vertex(vertices[i].x, vertices[i].y);
-  //     }
-  //     endShape(CLOSE);
-  //   }
 }
