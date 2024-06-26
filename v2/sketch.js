@@ -24,7 +24,7 @@ let cueIndependentAngle = 0,
   maxCuePower = 5,
   isCueActive = false;
 
-let tableWidth = 600,
+let tableWidth = 800,
   tableHeight = tableWidth / 2;
 let lastPocketedBall = 0,
   lastTwoPocketedBalls = [],
@@ -45,6 +45,8 @@ let coloredOrder = [
 let currentColorIndex = 0,
   alertMessages = [];
 
+let game;
+
 function preload() {
   // extension
   for (let i = 0; i < NUM_SOUNDS; i++) {
@@ -55,12 +57,10 @@ function preload() {
 }
 
 function setup() {
-  let canvasWidth = 798;
+  let canvasWidth = 800;
   let canvasHeight = 400;
 
-  // Initialize global table dimensions
-  tableWidth = canvasWidth;
-  tableHeight = canvasWidth / 2; // Maintain the 2:1 ratio for the snooker table
+  game = new Game();
 
   frameWidth = 10;
 
@@ -76,7 +76,7 @@ function setup() {
     numberOfBalls
   );
 
-  drawTable(tableWidth, tableHeight);
+  game.table.draw();
 
   drawPockets(pocketDiameter);
 
@@ -137,7 +137,7 @@ function setup() {
   );
 
   // Calculate positions for colored balls
-  let ballsY = dCenterY + 20; // 20 pixels below the baulk line
+  let ballsY = game.table.dCenterY + 20; // 20 pixels below the baulk line
   let blueBallX = tableWidth / 2; // Center of the table width
   let blueBallY = tableHeight / 2; // Center of the table height
   let pinkBallX = initialBallPositions[0].x - ballDiameter; // Left of the first red ball
@@ -147,15 +147,15 @@ function setup() {
 
   // Store the original positions of the colored balls
   originalPositionsMap[greenBallProperties.color] = {
-    x: dCenterX,
+    x: game.table.dCenterX,
     y: ballsY - 70,
   };
   originalPositionsMap[brownBallProperties.color] = {
-    x: dCenterX,
+    x: game.table.dCenterX,
     y: ballsY - 18,
   };
   originalPositionsMap[yellowBallProperties.color] = {
-    x: dCenterX,
+    x: game.table.dCenterX,
     y: ballsY + 30,
   };
   originalPositionsMap[blueBallProperties.color] = {
@@ -173,9 +173,9 @@ function setup() {
 
   // Create and add colored balls
   let coloredBalls = [
-    { props: greenBallProperties, x: dCenterX, y: ballsY - 70 },
-    { props: brownBallProperties, x: dCenterX, y: ballsY - 18 },
-    { props: yellowBallProperties, x: dCenterX, y: ballsY + 30 },
+    { props: greenBallProperties, x: game.table.dCenterX, y: ballsY - 70 },
+    { props: brownBallProperties, x: game.table.dCenterX, y: ballsY - 18 },
+    { props: yellowBallProperties, x: game.table.dCenterX, y: ballsY + 30 },
     { props: blueBallProperties, x: blueBallX, y: blueBallY },
     { props: pinkBallProperties, x: pinkBallX, y: pinkBallY },
     { props: blackBallProperties, x: blackBallX, y: blackBallY },
@@ -189,8 +189,8 @@ function setup() {
 
   // Create the cue as a rectangle
   // Place the cue behind the "D" zone
-  let cueInitialX = dCenterX - 100;
-  let cueInitialY = dCenterY;
+  let cueInitialX = game.table.dCenterX - 100;
+  let cueInitialY = game.table.dCenterY;
   cue = Matter.Bodies.rectangle(cueInitialX, cueInitialY, cueWidth, cueHeight, {
     isStatic: true,
   });
@@ -503,8 +503,8 @@ function draw() {
   // Draw the baulk line
   strokeWeight(2);
   stroke(255);
-  let startX = dCenterX;
-  let endX = dCenterX;
+  let startX = game.table.dCenterX;
+  let endX = game.table.dCenterX;
   let startY = frameWidth + 20;
   let endY = tableHeight - frameWidth - 20;
 
@@ -513,7 +513,14 @@ function draw() {
 
   // Draw the "D" as an arc
   noFill(); // No fill for the "D"
-  arc(dCenterX, dCenterY, dRadius * 2, dRadius * 2, HALF_PI, 3 * HALF_PI);
+  arc(
+    game.table.dCenterX,
+    game.table.dCenterY,
+    game.table.dRadius * 2,
+    game.table.dRadius * 2,
+    HALF_PI,
+    3 * HALF_PI
+  );
 
   drawPockets(tableWidth, tableHeight, tableWidth / 24);
 
@@ -642,8 +649,9 @@ function setupCollisionHandling(engine) {
 
           // Set a timeout to re-add the cue ball in the "D" zone
           setTimeout(function () {
-            let cueBallX = dCenterX; // Center of the "D"
-            let cueBallY = dCenterY + dRadius - tableWidth / 60 - 5; // Position inside the "D"
+            let cueBallX = game.table.dCenterX; // Center of the "D"
+            let cueBallY =
+              game.table.dCenterY + game.table.dRadius - tableWidth / 60 - 5; // Position inside the "D"
             cueBall = createCueBall(cueBallX, cueBallY, tableWidth / 60);
             Matter.World.add(world, cueBall);
           }, 500);
@@ -786,7 +794,7 @@ function setupDefaultMode() {
     ballDiameter,
     numberOfBalls
   );
-  let ballsY = dCenterY + 20;
+  let ballsY = game.table.dCenterY + 20;
 
   // Add red balls
   for (let i = 0; i < initialBallPositions.length; i++) {
@@ -815,19 +823,19 @@ function setupDefaultMode() {
 
   // Create and add green, brown, and yellow balls
   let greenBall = createBall(
-    dCenterX,
+    game.table.dCenterX,
     ballsY - 70,
     ballDiameter / 2,
     greenBallProperties
   );
   let brownBall = createBall(
-    dCenterX,
+    game.table.dCenterX,
     ballsY - 18,
     ballDiameter / 2,
     brownBallProperties
   );
   let yellowBall = createBall(
-    dCenterX,
+    game.table.dCenterX,
     ballsY + 30,
     ballDiameter / 2,
     yellowBallProperties
