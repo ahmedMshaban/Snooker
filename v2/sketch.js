@@ -1,6 +1,8 @@
 // Global variables and P5js and matter.js setup
 let Engine = Matter.Engine;
 let Runner = Matter.Runner;
+let World = Matter.World;
+let Events = Matter.Events;
 
 let pockets = [],
   balls = [];
@@ -71,7 +73,6 @@ function setup() {
   frameWidth = 10;
 
   let ballDiameter = tableWidth / 60;
-  let pocketDiameter = ballDiameter * 1.5;
   initialBallPositions = createTriangleFormation(
     tableWidth,
     tableHeight,
@@ -79,15 +80,7 @@ function setup() {
     numberOfBalls
   );
 
-  drawPockets(pocketDiameter);
-
-  Matter.Events.on(game.engine, "collisionStart", handleCollision);
-
-  // Disable gravity for top-down view
-  game.engine.world.gravity.y = 0;
-  game.engine.world.gravity.x = 0;
-
-  createWalls();
+  game.table.createWalls();
 
   // Add a mousePressed event listener to resume audio context (extension)
   canvas.mousePressed(userStartAudio);
@@ -234,48 +227,6 @@ function updateScoreForPocketedBall(ball) {
   }
 }
 
-function createWalls() {
-  let wallThickness = 20;
-  let wallColor = "#FF0000";
-  let options = {
-    isStatic: true,
-    render: { visible: true, fillStyle: wallColor },
-  }; // Make visible for debugging
-
-  // Create walls with adjusted positions and sizes
-  let topWall = Matter.Bodies.rectangle(
-    tableWidth / 2,
-    frameWidth + wallThickness / 2,
-    tableWidth - 2 * frameWidth,
-    wallThickness,
-    options
-  );
-  let bottomWall = Matter.Bodies.rectangle(
-    tableWidth / 2,
-    tableHeight - frameWidth - wallThickness / 2,
-    tableWidth - 2 * frameWidth,
-    wallThickness,
-    options
-  );
-  let leftWall = Matter.Bodies.rectangle(
-    frameWidth + wallThickness / 4,
-    tableHeight / 2,
-    wallThickness,
-    tableHeight - 2 * frameWidth,
-    options
-  );
-  let rightWall = Matter.Bodies.rectangle(
-    tableWidth - frameWidth - wallThickness / 2,
-    tableHeight / 2,
-    wallThickness,
-    tableHeight - 2 * frameWidth,
-    options
-  );
-
-  // Add walls to the world
-  Matter.World.add(game.world, [topWall, bottomWall, leftWall, rightWall]);
-}
-
 function createCueBall(x, y, radius) {
   return Matter.Bodies.circle(x, y, radius, {
     restitution: 0.9, // Bounciness
@@ -347,7 +298,6 @@ function createPocketsAsSensors(world) {
   }
 }
 
-// function drawTable(tableWidth, tableHeight) {
 //   // Set the wooden frame properties
 //   let frameWidth = 25;
 //   let cornerRadius = frameWidth;
@@ -395,56 +345,6 @@ function createBall(x, y, radius, ball) {
   return newBall;
 }
 
-function drawPockets(tableWidth, tableHeight, pocketDiameter) {
-  let frameWidth = 20;
-  let pocketRadius = pocketDiameter / 2;
-
-  fill(46, 38, 34);
-  stroke(64, 50, 41);
-  strokeWeight(1);
-
-  // Adjust positions to be within the frame
-  // Corner pockets
-  ellipse(
-    frameWidth + pocketRadius,
-    frameWidth + pocketRadius,
-    pocketDiameter,
-    pocketDiameter
-  ); // Top-left
-  ellipse(
-    tableWidth - frameWidth - pocketRadius,
-    frameWidth + pocketRadius,
-    pocketDiameter,
-    pocketDiameter
-  ); // Top-right
-  ellipse(
-    frameWidth + pocketRadius,
-    tableHeight - frameWidth - pocketRadius,
-    pocketDiameter,
-    pocketDiameter
-  ); // Bottom-left
-  ellipse(
-    tableWidth - frameWidth - pocketRadius,
-    tableHeight - frameWidth - pocketRadius,
-    pocketDiameter,
-    pocketDiameter
-  ); // Bottom-right
-
-  // Side pockets need to be adjusted to be vertically centered within the playing area
-  ellipse(
-    tableWidth / 2,
-    frameWidth + pocketRadius,
-    pocketDiameter,
-    pocketDiameter
-  ); // Middle-top
-  ellipse(
-    tableWidth / 2,
-    tableHeight - frameWidth - pocketRadius,
-    pocketDiameter,
-    pocketDiameter
-  ); // Middle-bottom
-}
-
 function getOriginalPosition(ball) {
   // Check if the ball's color is in the map
   if (originalPositionsMap[ball.render.fillStyle]) {
@@ -489,34 +389,8 @@ function drawCue() {
 }
 
 function draw() {
-  background(255);
-
   // Draw table
-  game.table.draw();
-
-  // Draw the baulk line
-  strokeWeight(2);
-  stroke(255);
-  let startX = game.table.dCenterX;
-  let endX = game.table.dCenterX;
-  let startY = frameWidth + 20;
-  let endY = tableHeight - frameWidth - 20;
-
-  // Draw the modified line
-  line(startX, startY, endX, endY);
-
-  // Draw the "D" as an arc
-  noFill(); // No fill for the "D"
-  arc(
-    game.table.dCenterX,
-    game.table.dCenterY,
-    game.table.dRadius * 2,
-    game.table.dRadius * 2,
-    HALF_PI,
-    3 * HALF_PI
-  );
-
-  drawPockets(tableWidth, tableHeight, tableWidth / 24);
+  game.update();
 
   renderBalls();
 
@@ -599,7 +473,7 @@ function handleCollision(event) {
 
 function handleCueBallPocketing() {
   // Remove the cue ball and decrease the score
-  Matter.World.remove(world, cueBall);
+  Matter.World.remove(game.world, cueBall);
   score--;
   cueBall = null; // Set cueBall to null indicating it's not in the world
   updateScore(score);
@@ -611,7 +485,7 @@ function handleCueBallPocketing() {
 }
 
 function removeFromGame(ball) {
-  Matter.World.remove(world, ball);
+  World.remove(game.world, ball);
   balls = balls.filter((b) => b !== ball);
 }
 
@@ -636,7 +510,7 @@ function setupCollisionHandling(engine) {
 
         if (ball === cueBall) {
           // Temporarily remove the cue ball
-          Matter.World.remove(world, cueBall);
+          Matter.World.remove(game.world, cueBall);
 
           // Decrease score
           score--;
@@ -647,7 +521,7 @@ function setupCollisionHandling(engine) {
             let cueBallY =
               game.table.dCenterY + game.table.dRadius - tableWidth / 60 - 5; // Position inside the "D"
             cueBall = createCueBall(cueBallX, cueBallY, tableWidth / 60);
-            Matter.World.add(world, cueBall);
+            Matter.World.add(game.world, cueBall);
           }, 500);
         } else {
           // Increase score and remove other ball
@@ -658,7 +532,7 @@ function setupCollisionHandling(engine) {
             score += ball.ballValue;
             updateScore(score);
           }
-          Matter.World.remove(world, ball);
+          Matter.World.remove(game.world, ball);
           balls = balls.filter((b) => b !== ball);
         }
       }
@@ -742,12 +616,12 @@ function keyPressed() {
 function clearBalls() {
   // Remove all balls from the world
   balls.forEach((ball) => {
-    Matter.World.remove(world, ball);
+    Matter.World.remove(game.world, ball);
   });
   balls = [];
   // Ensure the cue ball is also cleared
   if (cueBall) {
-    Matter.World.remove(world, cueBall);
+    Matter.World.remove(game.world, cueBall);
     cueBall = null;
   }
 }
@@ -800,7 +674,7 @@ function setupDefaultMode() {
       ballDiameter / 2,
       redBallProperties
     );
-    Matter.World.add(world, snookerBall);
+    Matter.World.add(game.world, snookerBall);
     balls.push(snookerBall);
   }
 
@@ -835,7 +709,7 @@ function setupDefaultMode() {
     yellowBallProperties
   );
 
-  Matter.World.add(world, [greenBall, brownBall, yellowBall]);
+  Matter.World.add(game.world, [greenBall, brownBall, yellowBall]);
   balls.push(greenBall, brownBall, yellowBall);
 
   // Create and add the blue ball
@@ -851,7 +725,7 @@ function setupDefaultMode() {
     ballDiameter / 2,
     blueBallProperties
   );
-  Matter.World.add(world, blueBall);
+  Matter.World.add(game.world, blueBall);
   balls.push(blueBall);
 
   // Calculate position for the pink ball
@@ -868,7 +742,7 @@ function setupDefaultMode() {
     ballDiameter / 2,
     pinkBallProperties
   );
-  Matter.World.add(world, pinkBall);
+  Matter.World.add(game.world, pinkBall);
   balls.push(pinkBall);
 
   // Calculate position for the black ball
@@ -885,7 +759,7 @@ function setupDefaultMode() {
     ballDiameter / 2,
     blackBallProperties
   );
-  Matter.World.add(world, blackBall);
+  Matter.World.add(game.world, blackBall);
   balls.push(blackBall);
 }
 
@@ -960,7 +834,7 @@ function returnColoredBall(ball) {
       color: ball.render.fillStyle,
       value: ball.ballValue,
     });
-    Matter.World.add(world, newBall);
+    Matter.World.add(game.world, newBall);
     balls.push(newBall);
   }, 500);
 }
@@ -1026,7 +900,7 @@ function randomRedsOnlyMode() {
       (ball) => ball.color === "#FF0000"
     );
     let redBall = createBall(x, y, tableWidth / 60 / 2, redBallProperties);
-    Matter.World.add(world, redBall);
+    Matter.World.add(game.world, redBall);
     balls.push(redBall);
   }
 
@@ -1054,7 +928,7 @@ function randomRedsAndColouredMode() {
     let x = random(safeAreaMinX, safeAreaMaxX);
     let y = random(safeAreaMinY, safeAreaMaxY);
     let newBall = createBall(x, y, tableWidth / 60 / 2, properties);
-    Matter.World.add(world, newBall);
+    Matter.World.add(game.world, newBall);
     balls.push(newBall);
   }
 
@@ -1089,7 +963,7 @@ function setupColoredBallsMode() {
       ballDiameter / 2,
       coloredBallProperties
     );
-    Matter.World.add(world, coloredBall);
+    Matter.World.add(game.world, coloredBall);
     balls.push(coloredBall);
   });
 }
