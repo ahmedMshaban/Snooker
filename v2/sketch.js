@@ -2,6 +2,7 @@
 let Engine = Matter.Engine;
 let Runner = Matter.Runner;
 let World = Matter.World;
+let Bodies = Matter.Bodies;
 let Events = Matter.Events;
 
 let pockets = [],
