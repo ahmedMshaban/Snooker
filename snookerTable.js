@@ -528,7 +528,6 @@ class SnookerTable {
   }
 
   isCushion(body) {
-    console.log(body);
     return this.cushions.includes(body);
   }
 }

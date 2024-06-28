@@ -17,8 +17,8 @@ class Game {
     };
     this.impactMessage = ""; // Track the impact message
     this.impactMessageTimeout = null; // Timeout for clearing the impact message
-    this.recentPottedBalls = []; // Track recently potted balls
-    this.pottedBallTimeout = 5000; // 5 seconds timeout to check for multiple potted balls
+    this.recentPottedColorBalls = []; // Track recently potted color balls
+    this.pottedColorBallTimeout = 5000; // 5 seconds timeout to check for multiple potted color balls
 
     Events.on(this.engine, "collisionStart", this.handleCollision.bind(this));
   }
@@ -394,8 +394,12 @@ class Game {
 
   isCueBallCushionCollision(bodyA, bodyB) {
     return (
-      (bodyA === this.cueBall.body && this.table.isCushion(bodyB)) ||
-      (bodyB === this.cueBall.body && this.table.isCushion(bodyA))
+      (this.cueBall &&
+        bodyA === this.cueBall.body &&
+        this.table.isCushion(bodyB)) ||
+      (this.cueBall &&
+        bodyB === this.cueBall.body &&
+        this.table.isCushion(bodyA))
     );
   }
 
@@ -473,7 +477,7 @@ class Game {
     if (ball) {
       if (this.isColoredBall(ball)) {
         // Track potted colored balls
-        this.trackPottedBall(ball);
+        this.trackPottedColorBall(ball);
 
         // Re-spot the colored ball
         this.reSpotColoredBall(ball);
@@ -501,12 +505,12 @@ class Game {
     }
   }
 
-  trackPottedBall(ball) {
-    this.recentPottedBalls.push(ball);
+  trackPottedColorBall(ball) {
+    this.recentPottedColorBalls.push(ball);
 
-    if (this.recentPottedBalls.length > 1) {
+    if (this.recentPottedColorBalls.length > 1) {
       // Check if there are multiple colored balls potted within the timeout period
-      const coloredBalls = this.recentPottedBalls.filter((b) =>
+      const coloredBalls = this.recentPottedColorBalls.filter((b) =>
         this.isColoredBall(b)
       );
       if (coloredBalls.length > 1) {
@@ -522,8 +526,10 @@ class Game {
 
     // Remove the ball from the list after the timeout
     setTimeout(() => {
-      this.recentPottedBalls = this.recentPottedBalls.filter((b) => b !== ball);
-    }, this.pottedBallTimeout);
+      this.recentPottedColorBalls = this.recentPottedColorBalls.filter(
+        (b) => b !== ball
+      );
+    }, this.pottedColorBallTimeout);
   }
 
   isColoredBall(ball) {
