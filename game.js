@@ -15,6 +15,10 @@ class Game {
       isError: false,
       message: "",
     };
+    this.impactMessage = ""; // Track the impact message
+    this.impactMessageTimeout = null; // Timeout for clearing the impact message
+    this.recentPottedBalls = []; // Track recently potted balls
+    this.pottedBallTimeout = 5000; // 5 seconds timeout to check for multiple potted balls
 
     Events.on(this.engine, "collisionStart", this.handleCollision.bind(this));
   }
@@ -110,6 +114,8 @@ class Game {
     if (this.error.isError) {
       this.showErrorPrompt(this.error.message);
     }
+
+    this.showImpactMessage();
   }
 
   initializeBalls() {
@@ -120,7 +126,6 @@ class Game {
     // Create balls based on the mode
     if (this.mode === 1) {
       this.createStartingPositions();
-      console.log(this.balls);
     } else if (this.mode === 2) {
       this.createRandomRedPositions();
     } else if (this.mode === 3) {
@@ -379,8 +384,56 @@ class Game {
       // Check if a ball has collided with a pocket
       if (this.isBallInPocket(bodyA, bodyB)) {
         this.handleBallInPocket(bodyA, bodyB);
+      } else if (this.isCueBallCollision(bodyA, bodyB)) {
+        this.handleCueBallCollision(bodyA, bodyB);
       }
     });
+  }
+
+  isCueBallCollision(bodyA, bodyB) {
+    return (
+      (bodyA === this.cueBall.body && this.isNonCueBall(bodyB)) ||
+      (bodyB === this.cueBall.body && this.isNonCueBall(bodyA))
+    );
+  }
+
+  isNonCueBall(body) {
+    return this.balls.some(
+      (ball) => ball.body === body && ball !== this.cueBall
+    );
+  }
+
+  handleCueBallCollision(bodyA, bodyB) {
+    const otherBody = bodyA === this.cueBall.body ? bodyB : bodyA;
+    const collidedBall = this.balls.find((ball) => ball.body === otherBody);
+
+    if (collidedBall) {
+      if (collidedBall.label === "cueBall") {
+        this.promptImpact("cue-cue");
+      } else if (collidedBall.label.startsWith("redBall")) {
+        this.promptImpact("cue-red");
+      } else {
+        this.promptImpact(`cue-${collidedBall.label}`);
+      }
+    }
+  }
+
+  promptImpact(type) {
+    this.impactMessage = `Impact detected: ${type}`;
+    if (this.impactMessageTimeout) {
+      clearTimeout(this.impactMessageTimeout);
+    }
+    this.impactMessageTimeout = setTimeout(() => {
+      this.impactMessage = "";
+    }, 4000); // Display for 4 seconds
+  }
+
+  showImpactMessage() {
+    if (this.impactMessage) {
+      fill(255);
+      textSize(20);
+      text(this.impactMessage, width / 2 - 150, height / 2 - 100);
+    }
   }
 
   isBallInPocket(bodyA, bodyB) {
@@ -401,27 +454,63 @@ class Game {
   handleBallInPocket(bodyA, bodyB) {
     const ballBody = this.isBall(bodyA) ? bodyA : bodyB;
 
-    // Find the ball object and remove it from the balls array and the world
+    // Find the ball object from the body
     const ball = this.balls.find((ball) => ball.body === ballBody);
+
     if (ball) {
       if (this.isColoredBall(ball)) {
+        // Track potted colored balls
+        this.trackPottedBall(ball);
+
         // Re-spot the colored ball
         this.reSpotColoredBall(ball);
+
+        // Inform the user that the colored ball was pocketed
+        this.promptImpact(`pocket-colored-${ball.label}`);
       } else if (ball.label === "cueBall") {
+        this.removeFromWorld(ball.body);
+        this.balls = this.balls.filter((b) => b !== ball);
         // Reset the cue ball
         this.cueBall = null;
         this.cueBallPlaced = false;
         this.isCueBallJustPlaced = false;
+
+        // Inform the user that the cue ball was pocketed
+        this.promptImpact("pocket-cue");
       } else {
         // Remove the ball from the world and the game
         this.removeFromWorld(ball.body);
         this.balls = this.balls.filter((b) => b !== ball);
-      }
 
-      // You can add additional logic here, like updating the score
-      console.log("Ball potted:", ball);
-      console.log("Remaining balls:", this.balls);
+        // Inform the user that a red ball was pocketed
+        this.promptImpact("pocket-red");
+      }
     }
+  }
+
+  trackPottedBall(ball) {
+    this.recentPottedBalls.push(ball);
+
+    if (this.recentPottedBalls.length > 1) {
+      // Check if there are multiple colored balls potted within the timeout period
+      const coloredBalls = this.recentPottedBalls.filter((b) =>
+        this.isColoredBall(b)
+      );
+      if (coloredBalls.length > 1) {
+        fill(255);
+        textSize(20);
+        text(
+          "Multiple colored balls potted",
+          width / 2 - 150,
+          height / 2 - 200
+        );
+      }
+    }
+
+    // Remove the ball from the list after the timeout
+    setTimeout(() => {
+      this.recentPottedBalls = this.recentPottedBalls.filter((b) => b !== ball);
+    }, this.pottedBallTimeout);
   }
 
   isColoredBall(ball) {

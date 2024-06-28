@@ -55,6 +55,8 @@ class SnookerTable {
         color: "black",
       },
     };
+
+    this.cushions = [];
   }
 
   drawTable() {
@@ -460,6 +462,15 @@ class SnookerTable {
       { isStatic: true, restitution: 0.8 }
     );
 
+    this.cushions.push(
+      leftVerticalBody,
+      rightVerticalBody,
+      topLeftToMiddleBody,
+      topMiddleToRightBody,
+      bottomLeftToMiddleBody,
+      bottomMiddleToRightBody
+    );
+
     // Add trapezoids to the world
     World.add(this.world, [
       leftVerticalBody,
@@ -521,5 +532,10 @@ class SnookerTable {
 
     const distance = dist(x, y, baulkLineX, dCenterY);
     return distance <= dRadius && x <= baulkLineX;
+  }
+
+  isCushion(body) {
+    console.log(body);
+    return this.cushions.includes(body);
   }
 }
