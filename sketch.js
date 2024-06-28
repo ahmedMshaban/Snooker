@@ -7,6 +7,7 @@ let Body = Matter.Body;
 let Constraint = Matter.Constraint;
 let Mouse = Matter.Mouse;
 let MouseConstraint = Matter.MouseConstraint;
+let Events = Matter.Events;
 let game;
 const canvasWidth = 1200;
 const canvasHeight = 600;

@@ -15,6 +15,8 @@ class Game {
       isError: false,
       message: "",
     };
+
+    Events.on(this.engine, "collisionStart", this.handleCollision.bind(this));
   }
 
   startGame() {
@@ -118,6 +120,7 @@ class Game {
     // Create balls based on the mode
     if (this.mode === 1) {
       this.createStartingPositions();
+      console.log(this.balls);
     } else if (this.mode === 2) {
       this.createRandomRedPositions();
     } else if (this.mode === 3) {
@@ -153,50 +156,68 @@ class Game {
 
   placeNonRedBalls() {
     const ballDiameter = this.table.ballDiameter;
-    const baulkLineX = this.table.baulkLineX;
-    const dRadius = this.table.dRadius;
-    const dCenterY = this.table.dCenterY;
 
     this.balls.push(
       new Ball(
-        baulkLineX,
-        dCenterY + dRadius,
+        this.table.coloredBalls.yellow.x,
+        this.table.coloredBalls.yellow.y,
         ballDiameter,
         this.world,
         [255, 255, 0],
-        "yellowBall"
+        this.table.coloredBalls.yellow.color
       )
     ); // Yellow ball
     this.balls.push(
       new Ball(
-        baulkLineX,
-        dCenterY - dRadius,
+        this.table.coloredBalls.green.x,
+        this.table.coloredBalls.green.y,
         ballDiameter,
         this.world,
         [0, 255, 0],
-        "greenBall"
+        this.table.coloredBalls.green.color
       )
     ); // Green ball
     this.balls.push(
       new Ball(
-        baulkLineX,
-        dCenterY,
+        this.table.coloredBalls.brown.x,
+        this.table.coloredBalls.brown.y,
         ballDiameter,
         this.world,
         [165, 42, 42],
-        "brownBall"
+        this.table.coloredBalls.brown.color
       )
     ); // Brown ball
     // Position of the remaining colored balls
     this.balls.push(
-      new Ball(600, 300, ballDiameter, this.world, [0, 0, 255], "blueBall")
+      new Ball(
+        this.table.coloredBalls.blue.x,
+        this.table.coloredBalls.blue.y,
+        ballDiameter,
+        this.world,
+        [0, 0, 255],
+        this.table.coloredBalls.blue.color
+      )
     ); // Blue ball
     this.balls.push(
-      new Ball(880, 300, ballDiameter, this.world, [255, 192, 203], "pinkBall")
+      new Ball(
+        this.table.coloredBalls.pink.x,
+        this.table.coloredBalls.pink.y,
+        ballDiameter,
+        this.world,
+        [255, 192, 203],
+        this.table.coloredBalls.pink.color
+      )
     ); // Pink ball
     this.balls.push(
-      new Ball(1100, 300, ballDiameter, this.world, [0, 0, 0], "blackBall")
-    ); // Black ball
+      new Ball(
+        this.table.coloredBalls.black.x,
+        this.table.coloredBalls.black.y,
+        ballDiameter,
+        this.world,
+        [0, 0, 0],
+        this.table.coloredBalls.black.color
+      ) // Black ball
+    );
   }
 
   createStartingPositions() {
@@ -238,7 +259,7 @@ class Game {
     for (let i = 0; i < 15; i++) {
       const { x, y } = this.generateRandomPosition(ballDiameter, this.balls);
       this.balls.push(
-        new Ball(x, y, ballDiameter, this.world, [255, 0, 0], `redBall${index}`)
+        new Ball(x, y, ballDiameter, this.world, [255, 0, 0], `redBall${i}`)
       ); // Red ball
     }
   }
@@ -249,22 +270,22 @@ class Game {
     // Generate random positions for all balls
     const colors = [
       {
-        yellowBall: [255, 255, 0],
+        yellow: [255, 255, 0],
       }, // Yellow ball
       {
-        greenBall: [0, 255, 0],
+        green: [0, 255, 0],
       }, // Green ball
       {
-        brownBall: [165, 42, 42],
+        brown: [165, 42, 42],
       }, // Brown ball
       {
-        blueBall: [0, 0, 255],
+        blue: [0, 0, 255],
       }, // Blue ball
       {
-        pinkBall: [255, 192, 203],
+        pink: [255, 192, 203],
       }, // Pink ball
       {
-        blackBall: [0, 0, 0],
+        black: [0, 0, 0],
       }, // Black ball
     ];
 
@@ -348,6 +369,73 @@ class Game {
       width / 2 - 150,
       height / 2 + 50
     );
+  }
+
+  handleCollision(event) {
+    const pairs = event.pairs;
+    pairs.forEach((pair) => {
+      const { bodyA, bodyB } = pair;
+
+      // Check if a ball has collided with a pocket
+      if (this.isBallInPocket(bodyA, bodyB)) {
+        this.handleBallInPocket(bodyA, bodyB);
+      }
+    });
+  }
+
+  isBallInPocket(bodyA, bodyB) {
+    return (
+      (this.isPocket(bodyA) && this.isBall(bodyB)) ||
+      (this.isPocket(bodyB) && this.isBall(bodyA))
+    );
+  }
+
+  isPocket(body) {
+    return this.table.pockets.includes(body);
+  }
+
+  isBall(body) {
+    return this.balls.some((ball) => ball.body === body);
+  }
+
+  handleBallInPocket(bodyA, bodyB) {
+    const ballBody = this.isBall(bodyA) ? bodyA : bodyB;
+
+    // Find the ball object and remove it from the balls array and the world
+    const ball = this.balls.find((ball) => ball.body === ballBody);
+    if (ball) {
+      if (this.isColoredBall(ball)) {
+        // Re-spot the colored ball
+        this.reSpotColoredBall(ball);
+      } else if (ball.label === "cueBall") {
+        // Reset the cue ball
+        this.cueBall = null;
+        this.cueBallPlaced = false;
+        this.isCueBallJustPlaced = false;
+      } else {
+        // Remove the ball from the world and the game
+        this.removeFromWorld(ball.body);
+        this.balls = this.balls.filter((b) => b !== ball);
+      }
+
+      // You can add additional logic here, like updating the score
+      console.log("Ball potted:", ball);
+      console.log("Remaining balls:", this.balls);
+    }
+  }
+
+  isColoredBall(ball) {
+    return ["yellow", "green", "brown", "blue", "pink", "black"].includes(
+      ball.label
+    );
+  }
+
+  reSpotColoredBall(ball) {
+    // Get the spot position for the colored ball
+    const spot = this.table.coloredBalls[ball.label];
+    // Set the ball's position to the spot position
+    Body.setPosition(ball.body, spot);
+    Body.setVelocity(ball.body, { x: 0, y: 0 });
   }
 
   ////////////////////////////////////////////////////////////

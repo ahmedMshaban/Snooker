@@ -5,6 +5,7 @@ class SnookerTable {
     this.tableWidth = this.tableLength / 2; // Table width should be half the table length
 
     this.ballDiameter = this.tableWidth / 36; // Ball diameter
+    this.pockets = []; // Pockets array
     this.pocketDiameter = this.ballDiameter * 1.5; // 1.5 times ball diameter
     this.pocketRadius = this.pocketDiameter / 2;
     this.borderWidth = 20;
@@ -25,6 +26,35 @@ class SnookerTable {
     // one-sixth of the width of the table, considering the trapezoidsWidth
     this.dRadius = (this.tableWidth - 2 * this.trapezoidsWidth) / 6;
     this.dCenterY = canvasHeight / 2;
+
+    this.coloredBalls = {
+      yellow: {
+        x: this.baulkLineX,
+        y: this.dCenterY + this.dRadius,
+        color: "yellow",
+      },
+      green: {
+        x: this.baulkLineX,
+        y: this.dCenterY - this.dRadius,
+        color: "green",
+      },
+      brown: { x: this.baulkLineX, y: this.dCenterY, color: "brown" },
+      blue: {
+        x: this.innerMiddleX,
+        y: (this.innerTopY + this.innerBottomY) / 2,
+        color: "blue",
+      },
+      pink: {
+        x: this.innerMiddleX + this.tableLength / 6,
+        y: (this.innerTopY + this.innerBottomY) / 2,
+        color: "pink",
+      },
+      black: {
+        x: this.innerRightX - this.tableLength / 12,
+        y: (this.innerTopY + this.innerBottomY) / 2,
+        color: "black",
+      },
+    };
   }
 
   drawTable() {
@@ -187,7 +217,7 @@ class SnookerTable {
 
   setupPockets() {
     // Create Matter.js bodies for the pockets
-    const pockets = [
+    this.pockets = [
       Bodies.circle(this.innerLeftX, this.innerTopY, this.pocketRadius, {
         isStatic: true,
         isSensor: true,
@@ -215,7 +245,7 @@ class SnookerTable {
     ];
 
     // Add pockets to the world
-    World.add(this.world, pockets);
+    World.add(this.world, this.pockets);
   }
 
   drawTrapezoids() {
