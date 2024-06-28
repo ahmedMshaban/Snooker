@@ -2,13 +2,15 @@ class Game {
   constructor() {
     this.engine = Engine.create();
     this.world = this.engine.world;
-    // this.engine.gravity.y = 0; // No gravity in the horizontal direction
+    this.engine.gravity.y = 0; // No gravity in the horizontal direction
     this.balls = [];
     this.cueStick = null; // Initialize cue stick
     this.table = new SnookerTable(this.world);
     this.mode = 0;
     this.cueBall = null; // Initialize cue ball
     this.cueBallPlaced = false; // Track cue ball placement
+    this.isCueBallJustPlaced = false; // Track if cue ball was just placed
+    this.allBallsStopped = false; // Track if all balls have stopped
     this.error = {
       isError: false,
       message: "",
@@ -38,13 +40,10 @@ class Game {
         // Place the cue ball in the 'D' zone
         game.createCueBall(mouseX, mouseY);
         this.cueBallPlaced = true;
+        this.isCueBallJustPlaced = true;
 
         // Create the cue stick
-        game.createCueStick(
-          this.cueBall.body.position.x,
-          this.cueBall.body.position.y,
-          150
-        );
+        this.cueStick = new CueStick(this.cueBall);
 
         // Remove the error message
         this.error = {
@@ -58,9 +57,17 @@ class Game {
         };
       }
     }
+  }
 
-    if (this.cueStick && this.cueBallPlaced) {
-      this.initiateHit();
+  handleMouseReleased() {
+    if (this.cueStick && this.cueBallPlaced && this.allBallsStopped) {
+      if (this.isCueBallJustPlaced) {
+        // Reset the flag without hitting the ball
+        this.isCueBallJustPlaced = false;
+      } else {
+        // Hit the cue ball
+        this.cueBall.hit(this.cueStick.power, this.cueStick.angle);
+      }
     }
   }
 
@@ -77,9 +84,14 @@ class Game {
     this.table.drawTable();
     this.balls.forEach((ball) => ball.draw());
 
+    // Check if all balls are stopped
+    this.allBallsStopped = this.balls.every((ball) => ball.isStopped());
+
     if (this.cueBall) {
       this.cueBall.draw();
-      this.cueStick.draw();
+      if (this.allBallsStopped) {
+        this.cueStick.draw();
+      }
     }
 
     if (this.mode === 0) {
@@ -151,7 +163,8 @@ class Game {
         dCenterY + dRadius,
         ballDiameter,
         this.world,
-        [255, 255, 0]
+        [255, 255, 0],
+        "yellowBall"
       )
     ); // Yellow ball
     this.balls.push(
@@ -160,18 +173,30 @@ class Game {
         dCenterY - dRadius,
         ballDiameter,
         this.world,
-        [0, 255, 0]
+        [0, 255, 0],
+        "greenBall"
       )
     ); // Green ball
     this.balls.push(
-      new Ball(baulkLineX, dCenterY, ballDiameter, this.world, [165, 42, 42])
+      new Ball(
+        baulkLineX,
+        dCenterY,
+        ballDiameter,
+        this.world,
+        [165, 42, 42],
+        "brownBall"
+      )
     ); // Brown ball
     // Position of the remaining colored balls
-    this.balls.push(new Ball(600, 300, ballDiameter, this.world, [0, 0, 255])); // Blue ball
     this.balls.push(
-      new Ball(880, 300, ballDiameter, this.world, [255, 192, 203])
+      new Ball(600, 300, ballDiameter, this.world, [0, 0, 255], "blueBall")
+    ); // Blue ball
+    this.balls.push(
+      new Ball(880, 300, ballDiameter, this.world, [255, 192, 203], "pinkBall")
     ); // Pink ball
-    this.balls.push(new Ball(1100, 300, ballDiameter, this.world, [0, 0, 0])); // Black ball
+    this.balls.push(
+      new Ball(1100, 300, ballDiameter, this.world, [0, 0, 0], "blackBall")
+    ); // Black ball
   }
 
   createStartingPositions() {
@@ -188,7 +213,16 @@ class Game {
       for (let col = 0; col <= row; col++) {
         const x = startX + row * spacing;
         const y = startY - (row / 2) * spacing + col * spacing;
-        this.balls.push(new Ball(x, y, ballDiameter, this.world, [255, 0, 0])); // Red ball
+        this.balls.push(
+          new Ball(
+            x,
+            y,
+            ballDiameter,
+            this.world,
+            [255, 0, 0],
+            `redBall${redCount}`
+          )
+        ); // Red ball
         redCount++;
         if (redCount >= 15) break;
       }
@@ -203,7 +237,9 @@ class Game {
     const ballDiameter = this.table.ballDiameter;
     for (let i = 0; i < 15; i++) {
       const { x, y } = this.generateRandomPosition(ballDiameter, this.balls);
-      this.balls.push(new Ball(x, y, ballDiameter, this.world, [255, 0, 0])); // Red ball
+      this.balls.push(
+        new Ball(x, y, ballDiameter, this.world, [255, 0, 0], `redBall${index}`)
+      ); // Red ball
     }
   }
 
@@ -212,35 +248,61 @@ class Game {
 
     // Generate random positions for all balls
     const colors = [
-      [255, 255, 0], // Yellow ball
-      [0, 255, 0], // Green ball
-      [165, 42, 42], // Brown ball
-      [0, 0, 255], // Blue ball
-      [255, 192, 203], // Pink ball
-      [0, 0, 0], // Black ball
+      {
+        yellowBall: [255, 255, 0],
+      }, // Yellow ball
+      {
+        greenBall: [0, 255, 0],
+      }, // Green ball
+      {
+        brownBall: [165, 42, 42],
+      }, // Brown ball
+      {
+        blueBall: [0, 0, 255],
+      }, // Blue ball
+      {
+        pinkBall: [255, 192, 203],
+      }, // Pink ball
+      {
+        blackBall: [0, 0, 0],
+      }, // Black ball
     ];
 
     // Place non-red balls
     for (let color of colors) {
       const { x, y } = this.generateRandomPosition(ballDiameter, this.balls);
-      this.balls.push(new Ball(x, y, ballDiameter, this.world, color));
+      this.balls.push(
+        new Ball(
+          x,
+          y,
+          ballDiameter,
+          this.world,
+          Object.values(color)[0],
+          Object.keys(color)[0]
+        )
+      );
     }
 
     // Place red balls
     for (let i = 0; i < 15; i++) {
       const { x, y } = this.generateRandomPosition(ballDiameter, this.balls);
-      this.balls.push(new Ball(x, y, ballDiameter, this.world, [255, 0, 0])); // Red ball
+      this.balls.push(
+        new Ball(x, y, ballDiameter, this.world, [255, 0, 0], `redBall${i}`)
+      ); // Red ball
     }
   }
 
   createCueBall(x, y) {
-    const cueBall = new Ball(x, y, this.table.ballDiameter, this.world, [255]);
+    const cueBall = new Ball(
+      x,
+      y,
+      this.table.ballDiameter,
+      this.world,
+      [255],
+      "cueBall"
+    );
     this.balls.push(cueBall);
     this.cueBall = cueBall;
-  }
-
-  initiateHit() {
-    this.cueStick.moveToCueBall();
   }
 
   createCueStick() {

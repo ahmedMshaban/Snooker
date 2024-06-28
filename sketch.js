@@ -40,9 +40,13 @@ function mousePressed() {
   game.handleMouse(mouseX, mouseY);
 }
 
+function mouseReleased() {
+  game.handleMouseReleased();
+}
+
 function mouseMoved() {
   // Handle mouse interaction for the cue stick
-  if (game && game.cueBallPlaced && game.cueStick) {
+  if (game && game.cueBallPlaced) {
     game.cueStick.handleMouse(mouseX, mouseY);
   }
 }
