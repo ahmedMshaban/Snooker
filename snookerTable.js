@@ -472,14 +472,7 @@ class SnookerTable {
     );
 
     // Add trapezoids to the world
-    World.add(this.world, [
-      leftVerticalBody,
-      rightVerticalBody,
-      topLeftToMiddleBody,
-      topMiddleToRightBody,
-      bottomLeftToMiddleBody,
-      bottomMiddleToRightBody,
-    ]);
+    World.add(this.world, this.cushions);
   }
 
   setupTable() {

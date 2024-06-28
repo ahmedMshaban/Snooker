@@ -386,14 +386,25 @@ class Game {
         this.handleBallInPocket(bodyA, bodyB);
       } else if (this.isCueBallCollision(bodyA, bodyB)) {
         this.handleCueBallCollision(bodyA, bodyB);
+      } else if (this.isCueBallCushionCollision(bodyA, bodyB)) {
+        this.handleCueBallCollision(bodyA, bodyB);
       }
     });
   }
 
+  isCueBallCushionCollision(bodyA, bodyB) {
+    return (
+      (bodyA === this.cueBall.body && this.table.isCushion(bodyB)) ||
+      (bodyB === this.cueBall.body && this.table.isCushion(bodyA))
+    );
+  }
+
   isCueBallCollision(bodyA, bodyB) {
     return (
-      (bodyA === this.cueBall.body && this.isNonCueBall(bodyB)) ||
-      (bodyB === this.cueBall.body && this.isNonCueBall(bodyA))
+      (this.cueBall &&
+        bodyA === this.cueBall.body &&
+        this.isNonCueBall(bodyB)) ||
+      (this.cueBall && bodyB === this.cueBall.body && this.isNonCueBall(bodyA))
     );
   }
 
@@ -415,6 +426,8 @@ class Game {
       } else {
         this.promptImpact(`cue-${collidedBall.label}`);
       }
+    } else if (this.table.isCushion(otherBody)) {
+      this.promptImpact("cue-cushion");
     }
   }
 
