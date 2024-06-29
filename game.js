@@ -62,6 +62,8 @@ class Game {
           message: "Cue ball must be placed in the 'D' zone",
         };
       }
+    } else if (this.cueStick && this.cueBallPlaced && this.allBallsStopped) {
+      this.cueStick.handleMousePressed();
     }
   }
 
@@ -71,14 +73,16 @@ class Game {
         // Reset the flag without hitting the ball
         this.isCueBallJustPlaced = false;
       } else {
-        // Hit the cue ball
-        this.cueBall.hit(this.cueStick.power, this.cueStick.angle);
+        this.cueStick.handleMouseReleased();
       }
     }
   }
 
   update() {
     Engine.update(this.engine);
+    if (this.cueStick) {
+      this.cueStick.update();
+    }
     this.render();
   }
 
@@ -95,9 +99,10 @@ class Game {
 
     if (this.cueBall) {
       this.cueBall.draw();
-      if (this.allBallsStopped) {
-        this.cueStick.draw();
-      }
+    }
+
+    if (this.cueStick && (this.allBallsStopped || this.cueStick.hitAnimation)) {
+      this.cueStick.draw();
     }
 
     if (this.mode === 0) {
@@ -192,7 +197,6 @@ class Game {
         this.table.coloredBalls.brown.color
       )
     ); // Brown ball
-    // Position of the remaining colored balls
     this.balls.push(
       new Ball(
         this.table.coloredBalls.blue.x,
@@ -230,8 +234,8 @@ class Game {
 
     // Red balls in triangular formation
     const ballDiameter = this.table.ballDiameter;
-    const startX = 900; // Adjusted Starting X position for the triangle
-    const startY = 300; // Y position for the tip of the triangle
+    const startX = 900;
+    const startY = 300;
     const spacing = ballDiameter * 1.1; // Slight spacing between balls
 
     let redCount = 0;

@@ -3,17 +3,40 @@ class CueStick {
     this.length = 150;
     this.cueBall = cueBall;
     this.angle = 0;
-    this.power = 0.005;
+    this.power = 0;
+    this.maxPower = 0.012; // Maximum power of the shot
+    this.charging = false; // Flag to check if the power is being charged
+    this.hitAnimation = false;
+    this.animationProgress = 0;
+    this.animationDuration = 10;
+    this.hitBall = false; // Flag to determine when to hit the ball
   }
 
   draw() {
     const cueBallRadius = this.cueBall.diameter;
     const fixedDistance = cueBallRadius + this.length / 2;
 
-    const stickX =
-      this.cueBall.body.position.x - fixedDistance * cos(this.angle);
-    const stickY =
-      this.cueBall.body.position.y - fixedDistance * sin(this.angle);
+    let stickX, stickY;
+    if (this.hitAnimation) {
+      const forwardDistance =
+        (this.animationProgress / this.animationDuration) * 5; // Move forward 5 pixels
+      stickX =
+        this.cueBall.body.position.x -
+        (fixedDistance - forwardDistance) * cos(this.angle);
+      stickY =
+        this.cueBall.body.position.y -
+        (fixedDistance - forwardDistance) * sin(this.angle);
+      this.animationProgress++;
+
+      if (this.animationProgress >= this.animationDuration) {
+        this.hitAnimation = false;
+        this.animationProgress = 0;
+        this.hitBall = true; // Set flag to hit the ball
+      }
+    } else {
+      stickX = this.cueBall.body.position.x - fixedDistance * cos(this.angle);
+      stickY = this.cueBall.body.position.y - fixedDistance * sin(this.angle);
+    }
 
     push();
     translate(stickX, stickY);
@@ -31,7 +54,7 @@ class CueStick {
 
     // Draw the black handle part
     stroke(0); // Black color for the handle
-    strokeWeight(10); // Adjust width as necessary
+    strokeWeight(10);
     line(-this.length / 2, 0, 0, 0);
 
     pop();
@@ -56,20 +79,33 @@ class CueStick {
       // Rotate counterclockwise
       this.angle -= rotationStep;
     }
+  }
 
-    // Update the angle of the cue stick body
-    Body.setAngle(this.body, this.angle);
+  handleMousePressed() {
+    this.charging = true;
+    this.power = 0; // Reset power
+  }
 
-    const cueBallRadius = this.cueBall.diameter / 2;
-    const fixedDistance = cueBallRadius + this.length / 2;
+  handleMouseReleased() {
+    if (this.charging) {
+      this.charging = false;
+      this.startHitAnimation();
+    }
+  }
 
-    const stickX =
-      this.cueBall.body.position.x - fixedDistance * cos(this.angle);
-    const stickY =
-      this.cueBall.body.position.y - fixedDistance * sin(this.angle);
+  update() {
+    if (this.charging) {
+      this.power = min(this.power + 0.0005, this.maxPower); // Increase power while charging
+    }
 
-    Body.setPosition(this.body, { x: stickX, y: stickY });
-    this.x = stickX; // Update this.x for p5.js rendering
-    this.y = stickY; // Update this.y for p5.js rendering
+    if (this.hitBall) {
+      this.hitBall = false; // Reset the flag
+      this.cueBall.hit(this.power, this.angle);
+    }
+  }
+
+  startHitAnimation() {
+    this.hitAnimation = true;
+    this.animationProgress = 0;
   }
 }
