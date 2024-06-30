@@ -132,9 +132,9 @@ class Game {
     if (this.mode === 1) {
       this.createStartingPositions();
     } else if (this.mode === 2) {
-      this.createRandomRedPositions();
-    } else if (this.mode === 3) {
       this.createRandomPositions();
+    } else if (this.mode === 3) {
+      this.createRandomRedPositions();
     }
   }
 
@@ -372,9 +372,13 @@ class Game {
     fill(255);
     textSize(20);
     text("Press 1 for standard mode", width / 2 - 150, height / 2 - 50);
-    text("Press 2 for random reds position mode", width / 2 - 150, height / 2);
     text(
-      "Press 3 for random all balls position mode",
+      "Press 2 for random all balls position mode",
+      width / 2 - 150,
+      height / 2
+    );
+    text(
+      "Press 3 for random reds position mode ",
       width / 2 - 150,
       height / 2 + 50
     );
