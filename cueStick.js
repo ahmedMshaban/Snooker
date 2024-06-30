@@ -1,26 +1,45 @@
 class CueStick {
-  constructor(x, y, cueBallX, cueBallY, cueBallRadius, length, world) {
-    this.x = x;
-    this.y = y;
-    this.length = length;
-    this.world = world;
+  constructor(cueBall) {
+    this.length = 150;
+    this.cueBall = cueBall;
     this.angle = 0;
-    this.cueBallX = cueBallX;
-    this.cueBallY = cueBallY;
-    this.cueBallRadius = cueBallRadius;
-    // Create a rectangular body for the cue stick
-    this.body = Bodies.rectangle(x, y, length, 10, {
-      isStatic: true,
-      isSensor: true,
-    });
-
-    // Add the cue stick body to the Matter.js world
-    World.add(this.world, this.body);
+    this.power = 0;
+    this.maxPower = 0.012; // Maximum power of the shot
+    this.charging = false; // Flag to check if the power is being charged
+    this.hitAnimation = false;
+    this.animationProgress = 0;
+    this.animationDuration = 10;
+    this.hitBall = false; // Flag to determine when to hit the ball
   }
 
   draw() {
+    const cueBallRadius = this.cueBall.diameter;
+    const fixedDistance = cueBallRadius + this.length / 2;
+
+    let stickX, stickY;
+    if (this.hitAnimation) {
+      const forwardDistance =
+        (this.animationProgress / this.animationDuration) * 5; // Move forward 5 pixels
+      stickX =
+        this.cueBall.body.position.x -
+        (fixedDistance - forwardDistance) * cos(this.angle);
+      stickY =
+        this.cueBall.body.position.y -
+        (fixedDistance - forwardDistance) * sin(this.angle);
+      this.animationProgress++;
+
+      if (this.animationProgress >= this.animationDuration) {
+        this.hitAnimation = false;
+        this.animationProgress = 0;
+        this.hitBall = true; // Set flag to hit the ball
+      }
+    } else {
+      stickX = this.cueBall.body.position.x - fixedDistance * cos(this.angle);
+      stickY = this.cueBall.body.position.y - fixedDistance * sin(this.angle);
+    }
+
     push();
-    translate(this.x, this.y);
+    translate(stickX, stickY);
     rotate(this.angle);
 
     // Draw the light brown shaft part
@@ -35,41 +54,19 @@ class CueStick {
 
     // Draw the black handle part
     stroke(0); // Black color for the handle
-    strokeWeight(10); // Adjust width as necessary
+    strokeWeight(10);
     line(-this.length / 2, 0, 0, 0);
 
     pop();
-
-    this.drawBodyVertices();
-  }
-
-  drawBodyVertices() {
-    const vertices = this.body.vertices;
-    beginShape();
-    for (let i = 0; i < vertices.length; i++) {
-      vertex(vertices[i].x, vertices[i].y);
-    }
-    endShape(CLOSE);
   }
 
   handleMouse(mouseX, mouseY) {
-    const angle = atan2(mouseY - this.cueBallY, mouseX - this.cueBallX);
+    const angle = atan2(
+      mouseY - this.cueBall.body.position.y,
+      mouseX - this.cueBall.body.position.x
+    );
 
-    // Update the angle of the cue stick
-    Body.setAngle(game.cueStick.body, angle);
-
-    const stickX =
-      this.cueBallX - (this.cueBallRadius + this.length / 2) * cos(angle);
-    const stickY =
-      this.cueBallY - (this.cueBallRadius + this.length / 2) * sin(angle);
-
-    Body.setPosition(game.cueStick.body, { x: stickX, y: stickY });
-
-    // Update this.angle for p5.js rendering
     this.angle = angle;
-    // Update the position of the cue stick in p5.js
-    this.x = stickX;
-    this.y = stickY;
   }
 
   handleKeystroke(key) {
@@ -77,24 +74,38 @@ class CueStick {
 
     if (key === "left") {
       // Rotate clockwise
-      game.cueStick.angle += rotationStep;
+      this.angle += rotationStep;
     } else if (key === "right") {
       // Rotate counterclockwise
-      game.cueStick.angle -= rotationStep;
+      this.angle -= rotationStep;
+    }
+  }
+
+  handleMousePressed() {
+    this.charging = true;
+    this.power = 0; // Reset power
+  }
+
+  handleMouseReleased() {
+    if (this.charging) {
+      this.charging = false;
+      this.startHitAnimation();
+    }
+  }
+
+  update() {
+    if (this.charging) {
+      this.power = min(this.power + 0.0005, this.maxPower); // Increase power while charging
     }
 
-    // Update the angle of the cue stick body
-    Body.setAngle(game.cueStick.body, game.cueStick.angle);
+    if (this.hitBall) {
+      this.hitBall = false; // Reset the flag
+      this.cueBall.hit(this.power, this.angle);
+    }
+  }
 
-    const stickX =
-      this.cueBallX -
-      (this.cueBallRadius + this.length / 2) * cos(game.cueStick.angle);
-    const stickY =
-      this.cueBallY -
-      (this.cueBallRadius + this.length / 2) * sin(game.cueStick.angle);
-
-    Body.setPosition(game.cueStick.body, { x: stickX, y: stickY });
-    this.x = stickX; // Update this.x for p5.js rendering
-    this.y = stickY; // Update this.y for p5.js rendering
+  startHitAnimation() {
+    this.hitAnimation = true;
+    this.animationProgress = 0;
   }
 }
